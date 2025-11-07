@@ -1,8 +1,42 @@
-/*
+:root {
+	--custom-caret-width: 4px;
+	--custom-caret-blink-duration: 1s;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.cm-editor .custom-caret-anchor {
+	display: inline;
+	position: relative;
+	width: 0;
+	pointer-events: none;
+}
 
-If your plugin does not need CSS, delete this file.
+.cm-editor .custom-caret-anchor::after {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: var(--custom-caret-width);
+	background: var(--interactive-accent);
+	opacity: 1;
+}
 
-*/
+.cm-editor.cm-focused:not(.cm-typing) .custom-caret-anchor::after {
+	animation: caret-blink var(--custom-caret-blink-duration, 1s) steps(1, end)
+		infinite;
+}
+
+.cm-editor .cm-line,
+.cm-editor .cm-content.cm-focused {
+	caret-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cm-editor .custom-caret-anchor::after {
+		animation: none;
+	}
+}
+
+@keyframes caret-blink {
+	50% {
+		opacity: 0;
+	}
+}
