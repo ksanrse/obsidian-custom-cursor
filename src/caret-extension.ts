@@ -29,6 +29,9 @@ class CaretWidget extends WidgetType {
 	}
 }
 
+// Reuse a single widget instance for performance
+const CARET_WIDGET = new CaretWidget();
+
 const caretPlugin = ViewPlugin.fromClass(
 	class {
 		deco: DecorationSet = Decoration.none;
@@ -38,13 +41,31 @@ const caretPlugin = ViewPlugin.fromClass(
 		}
 
 		update(update: ViewUpdate) {
-			if (
-				update.selectionSet ||
-				update.docChanged ||
-				update.viewportChanged
-			) {
-				this.deco = this.build();
+			// Only rebuild if something actually changed
+			if (!update.selectionSet && !update.docChanged && !update.viewportChanged) {
+				return;
 			}
+
+			// Check if cursor positions actually changed
+			const oldRanges = update.startState.selection.ranges;
+			const newRanges = update.state.selection.ranges;
+
+			// Fast path: if viewport didn't change and selection structure is identical
+			if (!update.viewportChanged && oldRanges.length === newRanges.length) {
+				let positionsChanged = false;
+				for (let i = 0; i < oldRanges.length; i++) {
+					if (oldRanges[i].head !== newRanges[i].head || oldRanges[i].empty !== newRanges[i].empty) {
+						positionsChanged = true;
+						break;
+					}
+				}
+				// If no cursor positions changed, skip rebuild
+				if (!positionsChanged) {
+					return;
+				}
+			}
+
+			this.deco = this.build();
 		}
 
 		build(): DecorationSet {
@@ -60,7 +81,7 @@ const caretPlugin = ViewPlugin.fromClass(
 				builder.add(
 					head,
 					head,
-					Decoration.widget({ widget: new CaretWidget(), side: 1 })
+					Decoration.widget({ widget: CARET_WIDGET, side: 1 })
 				);
 			}
 
@@ -71,8 +92,3 @@ const caretPlugin = ViewPlugin.fromClass(
 );
 
 export const caretExtension: Extension[] = [caretPlugin];
-
-export function caretRect(view: EditorView) {
-	const head = view.state.selection.main.head;
-	return view.coordsAtPos(head);
-}
