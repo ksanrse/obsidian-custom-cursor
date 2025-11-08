@@ -10,8 +10,8 @@ export default class CustomCursorPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// Create and register editor extension with settings
-		this.editorExtension = createCaretExtension(this.settings);
+		// Create and register editor extension with settings getter
+		this.editorExtension = createCaretExtension(() => this.settings);
 		this.registerEditorExtension(this.editorExtension);
 
 		// Add settings tab

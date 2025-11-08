@@ -34,7 +34,7 @@ class CaretWidget extends WidgetType {
 const CARET_WIDGET = new CaretWidget();
 const CARET_WIDGET_BLINK = new CaretWidget("custom-caret-anchor blink");
 
-function createCaretPlugin(settings: CustomCursorSettings) {
+function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 	return ViewPlugin.fromClass(
 		class {
 			deco: DecorationSet = Decoration.none;
@@ -47,16 +47,23 @@ function createCaretPlugin(settings: CustomCursorSettings) {
 			constructor(readonly view: EditorView) {
 				this.deco = this.build();
 				this.updateCursorCache();
-
-				// Start idle tracking if enabled
-				if (settings.blinkOnlyWhenIdle) {
-					this.startIdleTracking();
-				}
+				this.startIdleTracking();
 			}
 
 			private startIdleTracking() {
 				// Check idle state periodically
 				const checkIdle = () => {
+					const settings = getSettings();
+
+					// If feature is disabled, ensure we're not in idle state
+					if (!settings.blinkOnlyWhenIdle) {
+						if (this.isIdle) {
+							this.isIdle = false;
+							this.deco = this.build();
+						}
+						return;
+					}
+
 					const now = Date.now();
 					const timeSinceActivity = now - this.lastActivityTime;
 
@@ -110,6 +117,8 @@ function createCaretPlugin(settings: CustomCursorSettings) {
 			}
 
 			update(update: ViewUpdate) {
+				const settings = getSettings();
+
 				// Mark activity on document changes (typing)
 				if (update.docChanged && settings.blinkOnlyWhenIdle) {
 					this.markActivity();
@@ -156,6 +165,7 @@ function createCaretPlugin(settings: CustomCursorSettings) {
 			build(): DecorationSet {
 				const builder = new RangeSetBuilder<Decoration>();
 				const viewport = this.view.viewport;
+				const settings = getSettings();
 
 				// Determine which widget to use based on idle state
 				const shouldBlink = !settings.blinkOnlyWhenIdle || this.isIdle;
@@ -189,6 +199,6 @@ function createCaretPlugin(settings: CustomCursorSettings) {
 	);
 }
 
-export function createCaretExtension(settings: CustomCursorSettings): Extension[] {
-	return [createCaretPlugin(settings)];
+export function createCaretExtension(getSettings: () => CustomCursorSettings): Extension[] {
+	return [createCaretPlugin(getSettings)];
 }

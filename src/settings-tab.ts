@@ -284,7 +284,8 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		// Apply cursor styles based on settings
 		let cursorCss = `
 			background-color: ${finalColor};
-			animation: cursor-blink ${blinkSpeed}ms infinite;
+			animation: custom-cursor-blink ${blinkSpeed}ms infinite;
+			position: absolute;
 		`;
 
 		switch (cursorStyle) {
@@ -292,12 +293,14 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 				cursorCss += `
 					width: ${cursorWidth}px;
 					height: calc(1em * ${cursorHeight});
+					bottom: 0;
 				`;
 				break;
 			case "block":
 				cursorCss += `
 					width: 0.6em;
 					height: calc(1em * ${cursorHeight});
+					bottom: 0;
 				`;
 				break;
 			case "underline":
