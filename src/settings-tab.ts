@@ -15,32 +15,79 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		containerEl.addClass("custom-cursor-settings-container");
 		containerEl.createEl("h2", { text: "Custom Cursor Settings" });
 
 		// Preview Section
 		this.createPreviewSection(containerEl);
 
-		// Cursor Style
+		// Appearance Section
+		this.createAppearanceSection(containerEl);
+
+		// Behavior Section
+		this.createBehaviorSection(containerEl);
+	}
+
+	private createAppearanceSection(containerEl: HTMLElement): void {
+		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
+		section.createEl("h3", { text: "Appearance" });
+		section.createDiv({
+			cls: "custom-cursor-section-description",
+			text: "Customize the visual appearance of your cursor",
+		});
+
+		this.addStyleSetting(section);
+		this.addColorSetting(section);
+		this.addWidthSetting(section);
+		this.addHeightSetting(section);
+	}
+
+	private createBehaviorSection(containerEl: HTMLElement): void {
+		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
+		section.createEl("h3", { text: "Behavior" });
+		section.createDiv({
+			cls: "custom-cursor-section-description",
+			text: "Control how your cursor behaves during editing",
+		});
+
+		this.addBlinkOnlyWhenIdleSetting(section);
+		if (this.plugin.settings.blinkOnlyWhenIdle) {
+			this.addIdleDelaySetting(section);
+		}
+		this.addBlinkSpeedSetting(section);
+	}
+
+	private addStyleSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
-			.setName("Cursor style")
-			.setDesc("Choose the cursor shape")
+			.setName("Style")
+			.setDesc("Choose the shape of your cursor (line, block, or underline)")
 			.addDropdown((dropdown) =>
 				dropdown
-					.addOption("line", "Line")
-					.addOption("block", "Block")
-					.addOption("underline", "Underline")
+					.addOption("line", "Line (vertical bar)")
+					.addOption("block", "Block (filled rectangle)")
+					.addOption("underline", "Underline (horizontal bar)")
 					.setValue(this.plugin.settings.cursorStyle)
 					.onChange(async (value) => {
 						this.plugin.settings.cursorStyle = value as CustomCursorSettings["cursorStyle"];
 						await this.plugin.saveSettings();
 						this.updatePreview();
 					})
-			);
+			)
+			.addExtraButton((button) =>
+				button
+					.setIcon("info")
+					.setTooltip("Line: thin vertical bar | Block: filled box | Underline: horizontal bar")
+					.onClick(() => {})
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Cursor Color
+	private addColorSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
-			.setName("Cursor color")
-			.setDesc("Choose the cursor color")
+			.setName("Color")
+			.setDesc("Pick a color for your cursor to match your theme or preference")
 			.addColorPicker((color) =>
 				color.setValue(this.plugin.settings.cursorColor).onChange(async (value) => {
 					this.plugin.settings.cursorColor = value;
@@ -51,18 +98,21 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.addExtraButton((button) =>
 				button
 					.setIcon("reset")
-					.setTooltip("Reset to default")
+					.setTooltip("Reset to default blue (#528BFF)")
 					.onClick(async () => {
 						this.plugin.settings.cursorColor = "#528BFF";
 						await this.plugin.saveSettings();
 						this.display();
 					})
-			);
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Cursor Width
+	private addWidthSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
-			.setName("Cursor width")
-			.setDesc("Width of the cursor in pixels (1-10)")
+			.setName("Width")
+			.setDesc("Thickness of the cursor in pixels (affects line style and underline height)")
 			.addSlider((slider) =>
 				slider
 					.setLimits(1, 10, 0.5)
@@ -73,12 +123,15 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.updatePreview();
 					})
-			);
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Cursor Height
+	private addHeightSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
-			.setName("Cursor height")
-			.setDesc("Height multiplier relative to line height (0.5-2.0)")
+			.setName("Height")
+			.setDesc("Height multiplier relative to line height (1.0 = normal line height)")
 			.addSlider((slider) =>
 				slider
 					.setLimits(0.5, 2.0, 0.1)
@@ -89,12 +142,17 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.updatePreview();
 					})
-			);
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Blink only when idle
+	private addBlinkOnlyWhenIdleSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
 			.setName("Blink only when idle")
-			.setDesc("Cursor will only blink when you're not typing")
+			.setDesc(
+				"Stop cursor blinking while typing for better visual focus. Cursor will resume blinking after you stop typing."
+			)
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.blinkOnlyWhenIdle).onChange(async (value) => {
 					this.plugin.settings.blinkOnlyWhenIdle = value;
@@ -102,30 +160,37 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					this.updatePreview();
 					this.display(); // Refresh to show/hide idle delay setting
 				})
-			);
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Idle delay (only shown if blink only when idle is enabled)
-		if (this.plugin.settings.blinkOnlyWhenIdle) {
-			new Setting(containerEl)
-				.setName("Idle delay")
-				.setDesc("Time to wait before cursor starts blinking (in milliseconds)")
-				.addSlider((slider) =>
-					slider
-						.setLimits(100, 2000, 100)
-						.setValue(this.plugin.settings.idleDelay)
-						.setDynamicTooltip()
-						.onChange(async (value) => {
-							this.plugin.settings.idleDelay = value;
-							await this.plugin.saveSettings();
-							this.updatePreview();
-						})
-				);
-		}
+	private addIdleDelaySetting(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("Idle delay")
+			.setDesc(
+				"How long to wait (in milliseconds) after you stop typing before the cursor starts blinking"
+			)
+			.addSlider((slider) =>
+				slider
+					.setLimits(100, 2000, 100)
+					.setValue(this.plugin.settings.idleDelay)
+					.setDynamicTooltip()
+					.onChange(async (value) => {
+						this.plugin.settings.idleDelay = value;
+						await this.plugin.saveSettings();
+						this.updatePreview();
+					})
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
 
-		// Blink Speed
+	private addBlinkSpeedSetting(containerEl: HTMLElement): void {
+
 		new Setting(containerEl)
 			.setName("Blink speed")
-			.setDesc("Speed of cursor blinking in milliseconds (200-2000)")
+			.setDesc(
+				"Duration of one complete blink cycle in milliseconds (lower = faster, higher = slower)"
+			)
 			.addSlider((slider) =>
 				slider
 					.setLimits(200, 2000, 100)
@@ -136,13 +201,16 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 						this.updatePreview();
 					})
-			);
+			)
+			.settingEl.addClass("custom-cursor-setting");
 	}
 
 	private createPreviewSection(containerEl: HTMLElement): void {
-		const previewSetting = new Setting(containerEl)
-			.setName("Preview")
-			.setDesc("Live preview of your cursor settings");
+		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
+
+		const previewSetting = new Setting(section)
+			.setName("Live Preview")
+			.setDesc("See how your cursor will look with the current settings");
 
 		const previewWrapper = previewSetting.controlEl.createDiv({
 			cls: "custom-cursor-preview-wrapper",
@@ -205,11 +273,16 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 
 		cursor.setAttribute("style", cursorCss);
 
-		// Add note about idle blinking
+		// Add informative notes
 		if (blinkOnlyWhenIdle) {
 			this.previewContainer.createEl("div", {
 				cls: "custom-cursor-preview-note",
-				text: "Note: Cursor will only blink when idle (not typing)",
+				text: `💡 Idle mode enabled: Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`,
+			});
+		} else {
+			this.previewContainer.createEl("div", {
+				cls: "custom-cursor-preview-note",
+				text: "💡 Cursor will blink continuously, even while typing",
 			});
 		}
 	}

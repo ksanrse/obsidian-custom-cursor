@@ -17,7 +17,7 @@ export default class CustomCursorPlugin extends Plugin {
 		// Add settings tab
 		this.addSettingTab(new CustomCursorSettingTab(this.app, this));
 
-		// Add CSS for cursor
+		// Apply cursor styles
 		this.updateCursorStyles();
 	}
 
@@ -33,106 +33,43 @@ export default class CustomCursorPlugin extends Plugin {
 	updateCursorStyles() {
 		const { cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed } = this.settings;
 
-		// Remove old style element if it exists
-		const oldStyle = document.getElementById("custom-cursor-styles");
-		if (oldStyle) {
-			oldStyle.remove();
-		}
+		// Update CSS variables for cursor styling
+		const root = document.documentElement;
+		root.style.setProperty("--custom-cursor-color", cursorColor);
+		root.style.setProperty("--custom-cursor-blink-speed", `${blinkSpeed}ms`);
 
-		// Create new style element
-		const styleEl = document.createElement("style");
-		styleEl.id = "custom-cursor-styles";
+		// Calculate dimensions based on cursor style
+		let width: string;
+		let height: string;
 
-		let cursorCss = "";
 		switch (cursorStyle) {
 			case "line":
-				cursorCss = `
-					width: ${cursorWidth}px;
-					height: calc(1em * ${cursorHeight});
-				`;
+				width = `${cursorWidth}px`;
+				height = `calc(1em * ${cursorHeight})`;
 				break;
 			case "block":
-				cursorCss = `
-					width: 0.6em;
-					height: calc(1em * ${cursorHeight});
-				`;
+				width = "0.6em";
+				height = `calc(1em * ${cursorHeight})`;
 				break;
 			case "underline":
-				cursorCss = `
-					width: 0.6em;
-					height: ${cursorWidth}px;
-					bottom: 0;
-				`;
+				width = "0.6em";
+				height = `${cursorWidth}px`;
 				break;
+			default:
+				width = `${cursorWidth}px`;
+				height = `calc(1em * ${cursorHeight})`;
 		}
 
-		styleEl.textContent = `
-			.custom-caret-anchor::after {
-				content: '';
-				position: absolute;
-				left: 0;
-				top: 0;
-				background-color: ${cursorColor};
-				${cursorCss}
-				pointer-events: none;
-				z-index: 1000;
-			}
-
-			.custom-caret-anchor.blink::after {
-				animation: custom-cursor-blink ${blinkSpeed}ms infinite;
-			}
-
-			@keyframes custom-cursor-blink {
-				0%, 49% { opacity: 1; }
-				50%, 100% { opacity: 0; }
-			}
-
-			/* Preview styles */
-			.custom-cursor-preview-wrapper {
-				margin-top: 10px;
-				padding: 20px;
-				background: var(--background-secondary);
-				border-radius: 5px;
-			}
-
-			.custom-cursor-preview {
-				position: relative;
-				padding: 20px;
-				font-size: 16px;
-				line-height: 1.5;
-			}
-
-			.custom-cursor-preview-text {
-				display: inline-block;
-			}
-
-			.custom-cursor-preview-cursor {
-				position: absolute;
-				display: inline-block;
-				margin-left: 2px;
-				top: 20px;
-			}
-
-			.custom-cursor-preview-note {
-				margin-top: 15px;
-				font-size: 12px;
-				color: var(--text-muted);
-				font-style: italic;
-			}
-
-			@keyframes cursor-blink {
-				0%, 49% { opacity: 1; }
-				50%, 100% { opacity: 0; }
-			}
-		`;
-
-		document.head.appendChild(styleEl);
+		root.style.setProperty("--custom-cursor-width", width);
+		root.style.setProperty("--custom-cursor-height", height);
 	}
 
 	onunload() {
-		const styleEl = document.getElementById("custom-cursor-styles");
-		if (styleEl) {
-			styleEl.remove();
-		}
+		// Clean up CSS variables
+		const root = document.documentElement;
+		root.style.removeProperty("--custom-cursor-color");
+		root.style.removeProperty("--custom-cursor-width");
+		root.style.removeProperty("--custom-cursor-height");
+		root.style.removeProperty("--custom-cursor-blink-speed");
 	}
 }
