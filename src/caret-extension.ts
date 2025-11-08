@@ -1,4 +1,4 @@
-import { type Extension, RangeSetBuilder } from "@codemirror/state";
+import { type Extension, RangeSetBuilder, type SelectionRange } from "@codemirror/state";
 import {
 	Decoration,
 	type DecorationSet,
@@ -121,7 +121,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			 * Checks if cursor positions have changed
 			 * @returns true if cursors are in the same positions
 			 */
-			private cursorsEqual(ranges: readonly any[]): boolean {
+			private cursorsEqual(ranges: readonly SelectionRange[]): boolean {
 				const currentHeads = ranges.filter(r => r.empty).map(r => r.head);
 
 				if (currentHeads.length !== this.lastCursorHeads.length) {
