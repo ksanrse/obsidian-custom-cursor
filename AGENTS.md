@@ -363,7 +363,7 @@ private updatePreview(): void {
       finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
       break;
     case "text":
-      finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
+      finalColor = getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
       break;
     case "custom":
     default:
