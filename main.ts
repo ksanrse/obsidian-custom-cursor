@@ -37,12 +37,14 @@ export default class CustomCursorPlugin extends Plugin {
 	/**
 	 * Updates CSS variables that control cursor appearance
 	 * Called on settings change and plugin load
+	 * Public method to ensure it can be called from settings tab
 	 */
-	updateCursorStyles() {
+	public updateCursorStyles() {
 		const root = document.documentElement;
 
 		// Apply color (from preset or custom)
 		const finalColor = this.getResolvedColor();
+		console.log(`[Custom Cursor] Updating color: preset=${this.settings.colorPreset}, finalColor=${finalColor}`);
 		root.style.setProperty("--custom-cursor-color", finalColor);
 
 		// Apply blink speed
@@ -63,10 +65,16 @@ export default class CustomCursorPlugin extends Plugin {
 		const root = document.documentElement;
 
 		switch (colorPreset) {
-			case "accent":
-				return getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
-			case "text":
-				return getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
+			case "accent": {
+				const accentColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
+				console.log(`[Custom Cursor] Accent color from CSS: "${accentColor}"`);
+				return accentColor || cursorColor; // Fallback to custom color if not found
+			}
+			case "text": {
+				const textColor = getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
+				console.log(`[Custom Cursor] Text color from CSS: "${textColor}"`);
+				return textColor || cursorColor; // Fallback to custom color if not found
+			}
 			case "custom":
 			default:
 				return cursorColor;
