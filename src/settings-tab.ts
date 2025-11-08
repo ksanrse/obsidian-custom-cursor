@@ -266,109 +266,33 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	private updatePreview(): void {
 		if (!this.previewContainer) return;
 
-		const { colorPreset, cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed, blinkOnlyWhenIdle } =
-			this.plugin.settings;
+		const { blinkOnlyWhenIdle, idleDelay } = this.plugin.settings;
 
 		// Clear previous content
 		this.previewContainer.empty();
 
-		// Create text container with inline cursor
+		// Create text line with cursor - use identical structure to real cursor
 		const textLine = this.previewContainer.createDiv({
 			cls: "custom-cursor-preview-line",
 		});
 
 		// Text before cursor
-		textLine.createSpan({ text: "Sample text " });
+		textLine.createSpan({ text: "The quick brown fox jumps over the lazy d" });
 
-		// Cursor wrapper (inline-block for proper positioning)
-		const cursorWrapper = textLine.createSpan({
-			cls: "custom-cursor-preview-cursor-wrapper",
-		});
-
-		// Create cursor element inside wrapper
-		const cursor = cursorWrapper.createSpan({
-			cls: "custom-cursor-preview-cursor",
+		// Cursor - use EXACTLY the same class as real cursor
+		textLine.createSpan({
+			cls: "custom-caret-anchor blink",
 		});
 
 		// Text after cursor
-		textLine.createSpan({ text: " with cursor" });
+		textLine.createSpan({ text: "og" });
 
-		// Determine color based on preset
-		let finalColor: string;
-		const root = document.documentElement;
-		switch (colorPreset) {
-			case "accent":
-				finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
-				break;
-			case "text":
-				finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
-				break;
-			case "custom":
-			default:
-				finalColor = cursorColor;
-				break;
-		}
-
-		// Apply cursor styles based on settings
-		let cursorCss = `
-			background-color: ${finalColor};
-			animation: custom-cursor-blink ${blinkSpeed}ms infinite;
-			display: inline-block;
-			position: relative;
-		`;
-
-		switch (cursorStyle) {
-			case "line":
-				cursorCss += `
-					width: ${cursorWidth}px;
-					height: calc(1em * ${cursorHeight});
-					vertical-align: text-bottom;
-				`;
-				break;
-			case "block":
-				cursorCss += `
-					width: 0.6em;
-					height: calc(1em * ${cursorHeight});
-					vertical-align: text-bottom;
-				`;
-				break;
-			case "underline":
-				cursorCss += `
-					width: 0.6em;
-					height: ${cursorWidth}px;
-					vertical-align: text-bottom;
-				`;
-				break;
-		}
-
-		cursor.setAttribute("style", cursorCss);
-
-		// Add informative notes
-		let noteText = "";
-
-		// Color preset info
-		switch (colorPreset) {
-			case "accent":
-				noteText = "🎨 Using theme's accent color | ";
-				break;
-			case "text":
-				noteText = "🎨 Using theme's text color | ";
-				break;
-			case "custom":
-				noteText = `🎨 Custom color: ${finalColor} | `;
-				break;
-		}
-
-		// Blink behavior info
+		// Add subtle hint about blink behavior
 		if (blinkOnlyWhenIdle) {
-			noteText += `Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`;
-		} else {
-			noteText += "Cursor will blink continuously, even while typing";
+			this.previewContainer.createEl("div", {
+				cls: "custom-cursor-preview-hint",
+				text: `Cursor stops blinking while typing (${idleDelay}ms idle delay)`,
+			});
 		}
-
-		this.previewContainer.createEl("div", {
-			cls: "custom-cursor-preview-note",
-			text: noteText,
-		});
 	}
 }
