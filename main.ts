@@ -44,7 +44,6 @@ export default class CustomCursorPlugin extends Plugin {
 
 		// Apply color (from preset or custom)
 		const finalColor = this.getResolvedColor();
-		console.log(`[Custom Cursor] Updating color: preset=${this.settings.colorPreset}, finalColor=${finalColor}`);
 		root.style.setProperty("--custom-cursor-color", finalColor);
 
 		// Apply blink speed
@@ -68,14 +67,12 @@ export default class CustomCursorPlugin extends Plugin {
 				// Check body element for CSS variables (where Obsidian defines them)
 				const body = document.body;
 				const accentColor = getComputedStyle(body).getPropertyValue("--interactive-accent").trim();
-				console.log(`[Custom Cursor] Accent color from body: "${accentColor}"`);
 				return accentColor || cursorColor;
 			}
 			case "text": {
-				// Use --text-normal (not --text-normal-editor)
+				// Use --text-normal
 				const body = document.body;
 				const textColor = getComputedStyle(body).getPropertyValue("--text-normal").trim();
-				console.log(`[Custom Cursor] Text color from body: "${textColor}"`);
 				return textColor || cursorColor;
 			}
 			case "custom":
