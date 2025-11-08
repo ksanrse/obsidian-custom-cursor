@@ -96,26 +96,31 @@
 }
 
 .custom-cursor-preview {
-	position: relative;
 	padding: 20px;
 	font-size: 16px;
 	line-height: 1.6;
 	min-height: 60px;
 	background: var(--background-primary);
 	border-radius: 5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
-.custom-cursor-preview-text {
-	display: inline-block;
+.custom-cursor-preview-line {
+	display: flex;
+	align-items: baseline;
 	color: var(--text-normal);
 	font-family: var(--font-text);
 }
 
-.custom-cursor-preview-cursor {
-	position: absolute;
+.custom-cursor-preview-cursor-wrapper {
 	display: inline-block;
-	margin-left: 2px;
-	top: 20px;
+	position: relative;
+}
+
+.custom-cursor-preview-cursor {
+	/* Styles applied inline from JavaScript */
 }
 
 .custom-cursor-preview-note {
