@@ -2,6 +2,10 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type CustomCursorPlugin from "../main";
 import type { CustomCursorSettings } from "./settings";
 
+/**
+ * Settings tab for Custom Cursor plugin
+ * Provides UI for configuring cursor appearance and behavior
+ */
 export class CustomCursorSettingTab extends PluginSettingTab {
 	plugin: CustomCursorPlugin;
 	private previewContainer: HTMLElement;
@@ -11,6 +15,10 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	/**
+	 * Renders the settings interface
+	 * Organized into sections: Preview, Appearance, and Behavior
+	 */
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
@@ -18,16 +26,15 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		containerEl.addClass("custom-cursor-settings-container");
 		containerEl.createEl("h2", { text: "Custom Cursor Settings" });
 
-		// Preview Section
 		this.createPreviewSection(containerEl);
-
-		// Appearance Section
 		this.createAppearanceSection(containerEl);
-
-		// Behavior Section
 		this.createBehaviorSection(containerEl);
 	}
 
+	/**
+	 * Creates the Appearance settings section
+	 * Controls cursor style, color, and dimensions
+	 */
 	private createAppearanceSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 		section.createEl("h3", { text: "Appearance" });
@@ -37,11 +44,18 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		});
 
 		this.addStyleSetting(section);
-		this.addColorSetting(section);
+		this.addColorPresetSetting(section);
+		if (this.plugin.settings.colorPreset === "custom") {
+			this.addColorSetting(section);
+		}
 		this.addWidthSetting(section);
 		this.addHeightSetting(section);
 	}
 
+	/**
+	 * Creates the Behavior settings section
+	 * Controls cursor blinking and idle behavior
+	 */
 	private createBehaviorSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 		section.createEl("h3", { text: "Behavior" });
@@ -58,7 +72,6 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	}
 
 	private addStyleSetting(containerEl: HTMLElement): void {
-
 		new Setting(containerEl)
 			.setName("Style")
 			.setDesc("Choose the shape of your cursor (line, block, or underline)")
@@ -79,6 +92,26 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setIcon("info")
 					.setTooltip("Line: thin vertical bar | Block: filled box | Underline: horizontal bar")
 					.onClick(() => {})
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
+
+	private addColorPresetSetting(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("Color preset")
+			.setDesc("Choose a color preset or use a custom color")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("accent", "Accent color (theme's accent color)")
+					.addOption("text", "Text color (theme's text color)")
+					.addOption("custom", "Custom color")
+					.setValue(this.plugin.settings.colorPreset)
+					.onChange(async (value) => {
+						this.plugin.settings.colorPreset = value as CustomCursorSettings["colorPreset"];
+						await this.plugin.saveSettings();
+						this.updatePreview();
+						this.display(); // Refresh to show/hide custom color picker
+					})
 			)
 			.settingEl.addClass("custom-cursor-setting");
 	}
@@ -205,6 +238,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.settingEl.addClass("custom-cursor-setting");
 	}
 
+	/**
+	 * Creates the live preview section at the top of settings
+	 */
 	private createPreviewSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 
@@ -223,10 +259,14 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		this.updatePreview();
 	}
 
+	/**
+	 * Updates the preview cursor to reflect current settings
+	 * Called whenever settings change
+	 */
 	private updatePreview(): void {
 		if (!this.previewContainer) return;
 
-		const { cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed, blinkOnlyWhenIdle } =
+		const { colorPreset, cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed, blinkOnlyWhenIdle } =
 			this.plugin.settings;
 
 		// Clear previous content
@@ -243,10 +283,27 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			cls: "custom-cursor-preview-cursor",
 		});
 
+		// Determine color based on preset
+		let finalColor: string;
+		const root = document.documentElement;
+		switch (colorPreset) {
+			case "accent":
+				finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
+				break;
+			case "text":
+				finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
+				break;
+			case "custom":
+			default:
+				finalColor = cursorColor;
+				break;
+		}
+
 		// Apply cursor styles based on settings
 		let cursorCss = `
-			background-color: ${cursorColor};
-			animation: cursor-blink ${blinkSpeed}ms infinite;
+			background-color: ${finalColor};
+			animation: custom-cursor-blink ${blinkSpeed}ms infinite;
+			position: absolute;
 		`;
 
 		switch (cursorStyle) {
@@ -254,12 +311,14 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 				cursorCss += `
 					width: ${cursorWidth}px;
 					height: calc(1em * ${cursorHeight});
+					bottom: 0;
 				`;
 				break;
 			case "block":
 				cursorCss += `
 					width: 0.6em;
 					height: calc(1em * ${cursorHeight});
+					bottom: 0;
 				`;
 				break;
 			case "underline":
@@ -274,16 +333,31 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		cursor.setAttribute("style", cursorCss);
 
 		// Add informative notes
-		if (blinkOnlyWhenIdle) {
-			this.previewContainer.createEl("div", {
-				cls: "custom-cursor-preview-note",
-				text: `💡 Idle mode enabled: Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`,
-			});
-		} else {
-			this.previewContainer.createEl("div", {
-				cls: "custom-cursor-preview-note",
-				text: "💡 Cursor will blink continuously, even while typing",
-			});
+		let noteText = "";
+
+		// Color preset info
+		switch (colorPreset) {
+			case "accent":
+				noteText = "🎨 Using theme's accent color | ";
+				break;
+			case "text":
+				noteText = "🎨 Using theme's text color | ";
+				break;
+			case "custom":
+				noteText = `🎨 Custom color: ${finalColor} | `;
+				break;
 		}
+
+		// Blink behavior info
+		if (blinkOnlyWhenIdle) {
+			noteText += `Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`;
+		} else {
+			noteText += "Cursor will blink continuously, even while typing";
+		}
+
+		this.previewContainer.createEl("div", {
+			cls: "custom-cursor-preview-note",
+			text: noteText,
+		});
 	}
 }
