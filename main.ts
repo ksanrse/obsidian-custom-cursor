@@ -31,11 +31,27 @@ export default class CustomCursorPlugin extends Plugin {
 	}
 
 	updateCursorStyles() {
-		const { cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed } = this.settings;
+		const { colorPreset, cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed } = this.settings;
 
 		// Update CSS variables for cursor styling
 		const root = document.documentElement;
-		root.style.setProperty("--custom-cursor-color", cursorColor);
+
+		// Determine color based on preset
+		let finalColor: string;
+		switch (colorPreset) {
+			case "accent":
+				finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
+				break;
+			case "text":
+				finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
+				break;
+			case "custom":
+			default:
+				finalColor = cursorColor;
+				break;
+		}
+
+		root.style.setProperty("--custom-cursor-color", finalColor);
 		root.style.setProperty("--custom-cursor-blink-speed", `${blinkSpeed}ms`);
 
 		// Calculate dimensions based on cursor style

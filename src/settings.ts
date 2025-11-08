@@ -1,4 +1,5 @@
 export interface CustomCursorSettings {
+	colorPreset: "accent" | "text" | "custom";
 	cursorColor: string;
 	cursorWidth: number;
 	cursorHeight: number;
@@ -9,6 +10,7 @@ export interface CustomCursorSettings {
 }
 
 export const DEFAULT_SETTINGS: CustomCursorSettings = {
+	colorPreset: "accent",
 	cursorColor: "#528BFF",
 	cursorWidth: 2,
 	cursorHeight: 1.2,

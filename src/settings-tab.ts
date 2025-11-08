@@ -37,7 +37,10 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		});
 
 		this.addStyleSetting(section);
-		this.addColorSetting(section);
+		this.addColorPresetSetting(section);
+		if (this.plugin.settings.colorPreset === "custom") {
+			this.addColorSetting(section);
+		}
 		this.addWidthSetting(section);
 		this.addHeightSetting(section);
 	}
@@ -58,7 +61,6 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	}
 
 	private addStyleSetting(containerEl: HTMLElement): void {
-
 		new Setting(containerEl)
 			.setName("Style")
 			.setDesc("Choose the shape of your cursor (line, block, or underline)")
@@ -79,6 +81,26 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setIcon("info")
 					.setTooltip("Line: thin vertical bar | Block: filled box | Underline: horizontal bar")
 					.onClick(() => {})
+			)
+			.settingEl.addClass("custom-cursor-setting");
+	}
+
+	private addColorPresetSetting(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName("Color preset")
+			.setDesc("Choose a color preset or use a custom color")
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOption("accent", "Accent color (theme's accent color)")
+					.addOption("text", "Text color (theme's text color)")
+					.addOption("custom", "Custom color")
+					.setValue(this.plugin.settings.colorPreset)
+					.onChange(async (value) => {
+						this.plugin.settings.colorPreset = value as CustomCursorSettings["colorPreset"];
+						await this.plugin.saveSettings();
+						this.updatePreview();
+						this.display(); // Refresh to show/hide custom color picker
+					})
 			)
 			.settingEl.addClass("custom-cursor-setting");
 	}
@@ -226,7 +248,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	private updatePreview(): void {
 		if (!this.previewContainer) return;
 
-		const { cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed, blinkOnlyWhenIdle } =
+		const { colorPreset, cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed, blinkOnlyWhenIdle } =
 			this.plugin.settings;
 
 		// Clear previous content
@@ -243,9 +265,25 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			cls: "custom-cursor-preview-cursor",
 		});
 
+		// Determine color based on preset
+		let finalColor: string;
+		const root = document.documentElement;
+		switch (colorPreset) {
+			case "accent":
+				finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
+				break;
+			case "text":
+				finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
+				break;
+			case "custom":
+			default:
+				finalColor = cursorColor;
+				break;
+		}
+
 		// Apply cursor styles based on settings
 		let cursorCss = `
-			background-color: ${cursorColor};
+			background-color: ${finalColor};
 			animation: cursor-blink ${blinkSpeed}ms infinite;
 		`;
 
@@ -274,16 +312,31 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		cursor.setAttribute("style", cursorCss);
 
 		// Add informative notes
-		if (blinkOnlyWhenIdle) {
-			this.previewContainer.createEl("div", {
-				cls: "custom-cursor-preview-note",
-				text: `💡 Idle mode enabled: Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`,
-			});
-		} else {
-			this.previewContainer.createEl("div", {
-				cls: "custom-cursor-preview-note",
-				text: "💡 Cursor will blink continuously, even while typing",
-			});
+		let noteText = "";
+
+		// Color preset info
+		switch (colorPreset) {
+			case "accent":
+				noteText = "🎨 Using theme's accent color | ";
+				break;
+			case "text":
+				noteText = "🎨 Using theme's text color | ";
+				break;
+			case "custom":
+				noteText = `🎨 Custom color: ${finalColor} | `;
+				break;
 		}
+
+		// Blink behavior info
+		if (blinkOnlyWhenIdle) {
+			noteText += `Cursor will stop blinking while you type and resume after ${this.plugin.settings.idleDelay}ms of inactivity`;
+		} else {
+			noteText += "Cursor will blink continuously, even while typing";
+		}
+
+		this.previewContainer.createEl("div", {
+			cls: "custom-cursor-preview-note",
+			text: noteText,
+		});
 	}
 }
