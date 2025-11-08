@@ -272,16 +272,26 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		// Clear previous content
 		this.previewContainer.empty();
 
-		// Create preview text
-		const previewText = this.previewContainer.createEl("div", {
-			cls: "custom-cursor-preview-text",
-			text: "Sample text with cursor",
+		// Create text container with inline cursor
+		const textLine = this.previewContainer.createDiv({
+			cls: "custom-cursor-preview-line",
 		});
 
-		// Create cursor element
-		const cursor = this.previewContainer.createEl("span", {
+		// Text before cursor
+		textLine.createSpan({ text: "Sample text " });
+
+		// Cursor wrapper (inline-block for proper positioning)
+		const cursorWrapper = textLine.createSpan({
+			cls: "custom-cursor-preview-cursor-wrapper",
+		});
+
+		// Create cursor element inside wrapper
+		const cursor = cursorWrapper.createSpan({
 			cls: "custom-cursor-preview-cursor",
 		});
+
+		// Text after cursor
+		textLine.createSpan({ text: " with cursor" });
 
 		// Determine color based on preset
 		let finalColor: string;
@@ -303,7 +313,8 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		let cursorCss = `
 			background-color: ${finalColor};
 			animation: custom-cursor-blink ${blinkSpeed}ms infinite;
-			position: absolute;
+			display: inline-block;
+			position: relative;
 		`;
 
 		switch (cursorStyle) {
@@ -311,21 +322,21 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 				cursorCss += `
 					width: ${cursorWidth}px;
 					height: calc(1em * ${cursorHeight});
-					bottom: 0;
+					vertical-align: text-bottom;
 				`;
 				break;
 			case "block":
 				cursorCss += `
 					width: 0.6em;
 					height: calc(1em * ${cursorHeight});
-					bottom: 0;
+					vertical-align: text-bottom;
 				`;
 				break;
 			case "underline":
 				cursorCss += `
 					width: 0.6em;
 					height: ${cursorWidth}px;
-					bottom: 0;
+					vertical-align: text-bottom;
 				`;
 				break;
 		}
