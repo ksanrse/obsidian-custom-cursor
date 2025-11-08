@@ -357,13 +357,13 @@ private updatePreview(): void {
 
   // Determine color based on preset
   let finalColor: string;
-  const root = document.documentElement;
+  const body = document.body;
   switch (colorPreset) {
     case "accent":
-      finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
+      finalColor = getComputedStyle(body).getPropertyValue("--interactive-accent").trim();
       break;
     case "text":
-      finalColor = getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
+      finalColor = getComputedStyle(body).getPropertyValue("--text-normal").trim();
       break;
     case "custom":
     default:

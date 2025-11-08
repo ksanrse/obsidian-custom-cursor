@@ -62,18 +62,21 @@ export default class CustomCursorPlugin extends Plugin {
 	 */
 	private getResolvedColor(): string {
 		const { colorPreset, cursorColor } = this.settings;
-		const root = document.documentElement;
 
 		switch (colorPreset) {
 			case "accent": {
-				const accentColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
-				console.log(`[Custom Cursor] Accent color from CSS: "${accentColor}"`);
-				return accentColor || cursorColor; // Fallback to custom color if not found
+				// Check body element for CSS variables (where Obsidian defines them)
+				const body = document.body;
+				const accentColor = getComputedStyle(body).getPropertyValue("--interactive-accent").trim();
+				console.log(`[Custom Cursor] Accent color from body: "${accentColor}"`);
+				return accentColor || cursorColor;
 			}
 			case "text": {
-				const textColor = getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
-				console.log(`[Custom Cursor] Text color from CSS: "${textColor}"`);
-				return textColor || cursorColor; // Fallback to custom color if not found
+				// Use --text-normal (not --text-normal-editor)
+				const body = document.body;
+				const textColor = getComputedStyle(body).getPropertyValue("--text-normal").trim();
+				console.log(`[Custom Cursor] Text color from body: "${textColor}"`);
+				return textColor || cursorColor;
 			}
 			case "custom":
 			default:
