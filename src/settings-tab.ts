@@ -2,6 +2,10 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type CustomCursorPlugin from "../main";
 import type { CustomCursorSettings } from "./settings";
 
+/**
+ * Settings tab for Custom Cursor plugin
+ * Provides UI for configuring cursor appearance and behavior
+ */
 export class CustomCursorSettingTab extends PluginSettingTab {
 	plugin: CustomCursorPlugin;
 	private previewContainer: HTMLElement;
@@ -11,6 +15,10 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	/**
+	 * Renders the settings interface
+	 * Organized into sections: Preview, Appearance, and Behavior
+	 */
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
@@ -18,16 +26,15 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		containerEl.addClass("custom-cursor-settings-container");
 		containerEl.createEl("h2", { text: "Custom Cursor Settings" });
 
-		// Preview Section
 		this.createPreviewSection(containerEl);
-
-		// Appearance Section
 		this.createAppearanceSection(containerEl);
-
-		// Behavior Section
 		this.createBehaviorSection(containerEl);
 	}
 
+	/**
+	 * Creates the Appearance settings section
+	 * Controls cursor style, color, and dimensions
+	 */
 	private createAppearanceSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 		section.createEl("h3", { text: "Appearance" });
@@ -45,6 +52,10 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		this.addHeightSetting(section);
 	}
 
+	/**
+	 * Creates the Behavior settings section
+	 * Controls cursor blinking and idle behavior
+	 */
 	private createBehaviorSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 		section.createEl("h3", { text: "Behavior" });
@@ -227,6 +238,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.settingEl.addClass("custom-cursor-setting");
 	}
 
+	/**
+	 * Creates the live preview section at the top of settings
+	 */
 	private createPreviewSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 
@@ -245,6 +259,10 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		this.updatePreview();
 	}
 
+	/**
+	 * Updates the preview cursor to reflect current settings
+	 * Called whenever settings change
+	 */
 	private updatePreview(): void {
 		if (!this.previewContainer) return;
 

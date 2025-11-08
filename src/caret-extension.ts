@@ -9,6 +9,9 @@ import {
 } from "@codemirror/view";
 import type { CustomCursorSettings } from "./settings";
 
+/**
+ * Widget that renders the custom cursor at the caret position
+ */
 class CaretWidget extends WidgetType {
 	constructor(readonly cssClass = "custom-caret-anchor") {
 		super();
@@ -30,10 +33,14 @@ class CaretWidget extends WidgetType {
 	}
 }
 
-// Reuse a single widget instance for performance
+// Reuse widget instances for performance
 const CARET_WIDGET = new CaretWidget();
 const CARET_WIDGET_BLINK = new CaretWidget("custom-caret-anchor blink");
 
+/**
+ * Creates the CodeMirror ViewPlugin that manages custom cursor rendering
+ * @param getSettings - Function to get current settings (allows dynamic updates)
+ */
 function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 	return ViewPlugin.fromClass(
 		class {
@@ -50,8 +57,13 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				this.startIdleTracking();
 			}
 
+			/**
+			 * Starts tracking user activity to determine idle state
+			 * Checks every 100ms if user has been inactive
+			 */
 			private startIdleTracking() {
-				// Check idle state periodically
+				const IDLE_CHECK_INTERVAL = 100; // ms
+
 				const checkIdle = () => {
 					const settings = getSettings();
 
@@ -77,10 +89,12 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 					}
 				};
 
-				// Check every 100ms
-				this.idleTimeout = window.setInterval(checkIdle, 100);
+				this.idleTimeout = window.setInterval(checkIdle, IDLE_CHECK_INTERVAL);
 			}
 
+			/**
+			 * Marks user activity (typing) to reset idle timer
+			 */
 			private markActivity() {
 				this.lastActivityTime = Date.now();
 				if (this.isIdle) {
@@ -89,6 +103,9 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				}
 			}
 
+			/**
+			 * Caches current cursor positions for optimization
+			 */
 			private updateCursorCache() {
 				this.lastCursorHeads = this.view.state.selection.ranges
 					.filter(r => r.empty)
@@ -100,6 +117,10 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				);
 			}
 
+			/**
+			 * Checks if cursor positions have changed
+			 * @returns true if cursors are in the same positions
+			 */
 			private cursorsEqual(ranges: readonly any[]): boolean {
 				const currentHeads = ranges.filter(r => r.empty).map(r => r.head);
 
@@ -116,25 +137,26 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				return true;
 			}
 
+			/**
+			 * Called on editor updates - optimized to minimize rebuilds
+			 */
 			update(update: ViewUpdate) {
 				const settings = getSettings();
 
-				// Mark activity on document changes (typing)
+				// Track typing activity for idle detection
 				if (update.docChanged && settings.blinkOnlyWhenIdle) {
 					this.markActivity();
 				}
 
-				// Only rebuild if something actually changed
+				// Early exit: nothing changed
 				if (!update.selectionSet && !update.docChanged && !update.viewportChanged) {
 					return;
 				}
 
 				const newRanges = update.state.selection.ranges;
-
-				// Check if cursor positions actually changed
 				const cursorsUnchanged = this.cursorsEqual(newRanges);
 
-				// Optimization: if only viewport changed but cursors didn't move
+				// Optimization: viewport scrolled but cursors didn't move
 				if (update.viewportChanged && !update.selectionSet && !update.docChanged && cursorsUnchanged) {
 					const viewport = this.view.viewport;
 					const currentInViewport = this.lastCursorHeads.some(
@@ -152,7 +174,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 					return;
 				}
 
-				// Fast path: if viewport didn't change and cursors are identical, skip rebuild
+				// Optimization: cursors didn't move and viewport didn't change
 				if (!update.viewportChanged && cursorsUnchanged) {
 					return;
 				}
@@ -162,20 +184,29 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				this.updateCursorCache();
 			}
 
+			/**
+			 * Builds decoration set with cursor widgets at caret positions
+			 * Only renders cursors within viewport for performance
+			 */
 			build(): DecorationSet {
 				const builder = new RangeSetBuilder<Decoration>();
 				const viewport = this.view.viewport;
 				const settings = getSettings();
 
-				// Determine which widget to use based on idle state
+				// Choose widget based on blink settings and idle state
 				const shouldBlink = !settings.blinkOnlyWhenIdle || this.isIdle;
 				const widget = shouldBlink ? CARET_WIDGET_BLINK : CARET_WIDGET;
 
+				// Add cursor widget at each caret position (if in viewport)
 				for (const range of this.view.state.selection.ranges) {
-					if (!range.empty) continue;
+					if (!range.empty) continue; // Skip selections, only show at carets
+
 					const head = range.head;
-					if (head < viewport.from - 1 || head > viewport.to + 1)
+
+					// Skip if outside viewport (with small buffer)
+					if (head < viewport.from - 1 || head > viewport.to + 1) {
 						continue;
+					}
 
 					builder.add(
 						head,
@@ -187,8 +218,10 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				return builder.finish();
 			}
 
+			/**
+			 * Cleanup on plugin unload
+			 */
 			destroy() {
-				// Clean up idle tracking
 				if (this.idleTimeout !== null) {
 					window.clearInterval(this.idleTimeout);
 					this.idleTimeout = null;
@@ -199,6 +232,11 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 	);
 }
 
+/**
+ * Creates the CodeMirror extension for custom cursor rendering
+ * @param getSettings - Function to retrieve current settings
+ * @returns CodeMirror extension array
+ */
 export function createCaretExtension(getSettings: () => CustomCursorSettings): Extension[] {
 	return [createCaretPlugin(getSettings)];
 }

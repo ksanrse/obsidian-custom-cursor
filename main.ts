@@ -3,6 +3,10 @@ import { createCaretExtension } from "./src/caret-extension";
 import { CustomCursorSettingTab } from "./src/settings-tab";
 import { DEFAULT_SETTINGS, type CustomCursorSettings } from "./src/settings";
 
+/**
+ * Custom Cursor Plugin for Obsidian
+ * Allows users to customize the appearance and behavior of the text cursor
+ */
 export default class CustomCursorPlugin extends Plugin {
 	settings: CustomCursorSettings;
 	private editorExtension: any;
@@ -10,14 +14,14 @@ export default class CustomCursorPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// Create and register editor extension with settings getter
+		// Register CodeMirror extension with dynamic settings access
 		this.editorExtension = createCaretExtension(() => this.settings);
 		this.registerEditorExtension(this.editorExtension);
 
-		// Add settings tab
+		// Register settings tab
 		this.addSettingTab(new CustomCursorSettingTab(this.app, this));
 
-		// Apply cursor styles
+		// Apply initial cursor styles
 		this.updateCursorStyles();
 	}
 
@@ -30,54 +34,74 @@ export default class CustomCursorPlugin extends Plugin {
 		this.updateCursorStyles();
 	}
 
+	/**
+	 * Updates CSS variables that control cursor appearance
+	 * Called on settings change and plugin load
+	 */
 	updateCursorStyles() {
-		const { colorPreset, cursorColor, cursorWidth, cursorHeight, cursorStyle, blinkSpeed } = this.settings;
-
-		// Update CSS variables for cursor styling
 		const root = document.documentElement;
 
-		// Determine color based on preset
-		let finalColor: string;
+		// Apply color (from preset or custom)
+		const finalColor = this.getResolvedColor();
+		root.style.setProperty("--custom-cursor-color", finalColor);
+
+		// Apply blink speed
+		root.style.setProperty("--custom-cursor-blink-speed", `${this.settings.blinkSpeed}ms`);
+
+		// Apply dimensions based on cursor style
+		const { width, height } = this.getCursorDimensions();
+		root.style.setProperty("--custom-cursor-width", width);
+		root.style.setProperty("--custom-cursor-height", height);
+	}
+
+	/**
+	 * Resolves the final cursor color based on the selected preset
+	 * @returns CSS color value
+	 */
+	private getResolvedColor(): string {
+		const { colorPreset, cursorColor } = this.settings;
+		const root = document.documentElement;
+
 		switch (colorPreset) {
 			case "accent":
-				finalColor = getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
-				break;
+				return getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
 			case "text":
-				finalColor = getComputedStyle(root).getPropertyValue("--text-normal").trim();
-				break;
+				return getComputedStyle(root).getPropertyValue("--text-normal").trim();
 			case "custom":
 			default:
-				finalColor = cursorColor;
-				break;
+				return cursorColor;
 		}
+	}
 
-		root.style.setProperty("--custom-cursor-color", finalColor);
-		root.style.setProperty("--custom-cursor-blink-speed", `${blinkSpeed}ms`);
-
-		// Calculate dimensions based on cursor style
-		let width: string;
-		let height: string;
+	/**
+	 * Calculates cursor dimensions based on style and settings
+	 * @returns Object with width and height CSS values
+	 */
+	private getCursorDimensions(): { width: string; height: string } {
+		const { cursorStyle, cursorWidth, cursorHeight } = this.settings;
 
 		switch (cursorStyle) {
 			case "line":
-				width = `${cursorWidth}px`;
-				height = `calc(1em * ${cursorHeight})`;
-				break;
+				return {
+					width: `${cursorWidth}px`,
+					height: `calc(1em * ${cursorHeight})`,
+				};
 			case "block":
-				width = "0.6em";
-				height = `calc(1em * ${cursorHeight})`;
-				break;
+				return {
+					width: "0.6em",
+					height: `calc(1em * ${cursorHeight})`,
+				};
 			case "underline":
-				width = "0.6em";
-				height = `${cursorWidth}px`;
-				break;
+				return {
+					width: "0.6em",
+					height: `${cursorWidth}px`,
+				};
 			default:
-				width = `${cursorWidth}px`;
-				height = `calc(1em * ${cursorHeight})`;
+				return {
+					width: `${cursorWidth}px`,
+					height: `calc(1em * ${cursorHeight})`,
+				};
 		}
-
-		root.style.setProperty("--custom-cursor-width", width);
-		root.style.setProperty("--custom-cursor-height", height);
 	}
 
 	onunload() {
