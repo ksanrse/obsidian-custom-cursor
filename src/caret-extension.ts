@@ -65,6 +65,27 @@ const caretPlugin = ViewPlugin.fromClass(
 				}
 			}
 
+			// Optimization for scroll: if only viewport changed but cursor didn't move
+			if (update.viewportChanged && !update.selectionSet && !update.docChanged) {
+				const newViewport = this.view.viewport;
+
+				// Check if all cursor positions are outside the new viewport
+				let anyInViewport = false;
+				for (const range of newRanges) {
+					if (!range.empty) continue;
+					const head = range.head;
+					if (head >= newViewport.from - 1 && head <= newViewport.to + 1) {
+						anyInViewport = true;
+						break;
+					}
+				}
+
+				// If no decorations would be rendered, and we had no decorations before, skip rebuild
+				if (!anyInViewport && this.deco.size === 0) {
+					return;
+				}
+			}
+
 			this.deco = this.build();
 		}
 
