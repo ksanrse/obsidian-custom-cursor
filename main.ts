@@ -66,7 +66,7 @@ export default class CustomCursorPlugin extends Plugin {
 			case "accent":
 				return getComputedStyle(root).getPropertyValue("--interactive-accent").trim();
 			case "text":
-				return getComputedStyle(root).getPropertyValue("--text-normal").trim();
+				return getComputedStyle(root).getPropertyValue("--text-normal-editor").trim();
 			case "custom":
 			default:
 				return cursorColor;
