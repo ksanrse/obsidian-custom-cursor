@@ -89,49 +89,34 @@
 /* Preview Section */
 .custom-cursor-preview-wrapper {
 	margin-top: 10px;
-	padding: 25px;
+	padding: 20px;
 	background: var(--background-secondary);
 	border-radius: 8px;
 	border: 1px solid var(--background-modifier-border);
 }
 
 .custom-cursor-preview {
-	padding: 20px;
+	padding: 16px 20px;
 	font-size: 16px;
-	line-height: 1.6;
-	min-height: 60px;
+	line-height: 1.5;
 	background: var(--background-primary);
 	border-radius: 5px;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	gap: 8px;
 }
 
 .custom-cursor-preview-line {
-	display: flex;
-	align-items: baseline;
 	color: var(--text-normal);
-	font-family: var(--font-text);
+	font-family: var(--font-monospace);
+	letter-spacing: 0.02em;
 }
 
-.custom-cursor-preview-cursor-wrapper {
-	display: inline-block;
-	position: relative;
-}
-
-.custom-cursor-preview-cursor {
-	/* Styles applied inline from JavaScript */
-}
-
-.custom-cursor-preview-note {
-	margin-top: 15px;
-	padding: 10px;
-	font-size: 12px;
+.custom-cursor-preview-hint {
+	margin-top: 4px;
+	font-size: 11px;
 	color: var(--text-muted);
 	font-style: italic;
-	background: var(--background-primary-alt);
-	border-radius: 4px;
-	border-left: 3px solid var(--interactive-accent);
 }
 
 /* Setting item enhancements */
