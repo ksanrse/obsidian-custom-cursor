@@ -20,7 +20,7 @@
 	content: '';
 	position: absolute;
 	left: 0;
-	bottom: 0;
+	top: 0;
 	background-color: var(--custom-cursor-color);
 	width: var(--custom-cursor-width);
 	height: var(--custom-cursor-height);
