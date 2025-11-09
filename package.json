@@ -29,5 +29,9 @@
 	"bugs": {
 		"url": "https://github.com/obsidianmd/obsidian-sample-plugin/issues"
 	},
-	"homepage": "https://github.com/obsidianmd/obsidian-sample-plugin#readme"
+	"homepage": "https://github.com/obsidianmd/obsidian-sample-plugin#readme",
+	"dependencies": {
+		"@codemirror/state": "^6.5.2",
+		"@codemirror/view": "^6.38.6"
+	}
 }

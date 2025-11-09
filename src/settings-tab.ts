@@ -24,7 +24,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.addClass("custom-cursor-settings-container");
-		containerEl.createEl("h2", { text: "Custom Cursor Settings" });
+		new Setting(containerEl).setName("Custom Cursor Settings").setHeading();
 
 		this.createPreviewSection(containerEl);
 		this.createAppearanceSection(containerEl);
@@ -37,7 +37,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	 */
 	private createAppearanceSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
-		section.createEl("h3", { text: "Appearance" });
+		new Setting(section).setName("Appearance").setHeading();
 		section.createDiv({
 			cls: "custom-cursor-section-description",
 			text: "Customize the visual appearance of your cursor",
@@ -58,7 +58,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 	 */
 	private createBehaviorSection(containerEl: HTMLElement): void {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
-		section.createEl("h3", { text: "Behavior" });
+		new Setting(section).setName("Behavior").setHeading();
 		section.createDiv({
 			cls: "custom-cursor-section-description",
 			text: "Control how your cursor behaves during editing",
@@ -245,7 +245,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		const section = containerEl.createDiv({ cls: "custom-cursor-settings-section" });
 
 		const previewSetting = new Setting(section)
-			.setName("Live Preview")
+			.setName("Live preview")
 			.setDesc("See how your cursor will look with the current settings");
 
 		const previewWrapper = previewSetting.controlEl.createDiv({

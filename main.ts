@@ -1,4 +1,5 @@
 import { Plugin } from "obsidian";
+import type { Extension } from "@codemirror/state";
 import { createCaretExtension } from "./src/caret-extension";
 import { CustomCursorSettingTab } from "./src/settings-tab";
 import { DEFAULT_SETTINGS, type CustomCursorSettings } from "./src/settings";
@@ -9,7 +10,7 @@ import { DEFAULT_SETTINGS, type CustomCursorSettings } from "./src/settings";
  */
 export default class CustomCursorPlugin extends Plugin {
 	settings: CustomCursorSettings;
-	private editorExtension: any;
+	private editorExtension: Extension[];
 
 	async onload() {
 		await this.loadSettings();
