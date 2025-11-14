@@ -24,7 +24,6 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		containerEl.addClass("custom-cursor-settings-container");
-		new Setting(containerEl).setName("Custom Cursor Settings").setHeading();
 
 		this.createPreviewSection(containerEl);
 		this.createAppearanceSection(containerEl);
@@ -90,7 +89,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.addExtraButton((button) =>
 				button
 					.setIcon("info")
-					.setTooltip("Line: thin vertical bar | Block: filled box | Underline: horizontal bar")
+					.setTooltip("Line: thin vertical bar; block: filled box; underline: horizontal bar")
 					.onClick(() => {})
 			)
 			.settingEl.addClass("custom-cursor-setting");
@@ -131,7 +130,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.addExtraButton((button) =>
 				button
 					.setIcon("reset")
-					.setTooltip("Reset to default blue (#528BFF)")
+					.setTooltip("Restore default color")
 					.onClick(async () => {
 						this.plugin.settings.cursorColor = "#528BFF";
 						await this.plugin.saveSettings();
