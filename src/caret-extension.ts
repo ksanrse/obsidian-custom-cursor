@@ -201,6 +201,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			update(update: ViewUpdate) {
 				const settings = getSettings();
 				this.applyNativeCaretState();
+				const focusChanged = update.focusChanged;
 
 				// Track typing activity for idle detection
 				if (update.docChanged && settings.blinkOnlyWhenIdle && !this.isComposing) {
@@ -214,7 +215,13 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				}
 
 				// Early exit: nothing changed
-				if (!update.selectionSet && !update.docChanged && !update.viewportChanged) {
+				if (!update.selectionSet && !update.docChanged && !update.viewportChanged && !focusChanged) {
+					return;
+				}
+
+				if (focusChanged) {
+					this.deco = this.build();
+					this.updateCursorCache();
 					return;
 				}
 
@@ -265,6 +272,12 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 
 				// Let IME/mobile composition use the native caret.
 				if (this.isComposing) {
+					return Decoration.none;
+				}
+
+				// Never render custom editor caret when editor is unfocused
+				// (prevents duplicate carets when editing inline title).
+				if (!this.view.hasFocus) {
 					return Decoration.none;
 				}
 

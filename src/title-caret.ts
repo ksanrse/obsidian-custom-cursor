@@ -175,8 +175,10 @@ export class InlineTitleCaretManager {
 			return;
 		}
 
-		const lineHeight = rect.height > 0 ? rect.height : this.getFallbackLineHeight(this.activeTitle);
-		const { width, height } = this.getCaretSize(this.getSettings(), lineHeight);
+		const titleLineHeight = rect.height > 0 ? rect.height : this.getFallbackLineHeight(this.activeTitle);
+		const baseLineHeight = this.getEditorBaseLineHeight();
+		const effectiveLineHeight = Math.min(titleLineHeight, baseLineHeight);
+		const { width, height } = this.getCaretSize(this.getSettings(), effectiveLineHeight);
 
 		this.caretEl.style.left = `${rect.left}px`;
 		this.caretEl.style.top = `${rect.bottom - height}px`;
@@ -237,6 +239,15 @@ export class InlineTitleCaretManager {
 		}
 
 		return 16;
+	}
+
+	private getEditorBaseLineHeight(): number {
+		const content = document.querySelector<HTMLElement>(".cm-editor .cm-content");
+		if (!content) {
+			return 16;
+		}
+
+		return this.getFallbackLineHeight(content);
 	}
 
 	private getCaretSize(settings: CustomCursorSettings, lineHeight: number): CaretSize {

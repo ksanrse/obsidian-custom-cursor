@@ -1,7 +1,7 @@
 {
 	"id": "custom-cursor",
 	"name": "Custom Cursor",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"minAppVersion": "0.15.0",
 	"description": "Allows you to change your caret cursor as you wish.",
 	"author": "ksanrse",
