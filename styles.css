@@ -102,6 +102,13 @@ body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-hidden 
 	animation: none;
 }
 
+body.custom-cursor-plugin-enabled .custom-title-caret-probe {
+	display: inline-block;
+	width: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
 /* Settings UI Styles */
 .custom-cursor-settings-container {
 	max-width: 800px;

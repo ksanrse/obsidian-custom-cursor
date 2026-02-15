@@ -7,7 +7,10 @@ import {
 	type ViewUpdate,
 	WidgetType,
 } from "@codemirror/view";
+import { Platform } from "obsidian";
 import type { CustomCursorSettings } from "./settings";
+
+const IS_ANDROID = Platform.isAndroidApp;
 
 /**
  * Widget that renders the custom cursor at the caret position
@@ -53,6 +56,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			private lastActivityTime: number = Date.now();
 
 			private readonly onCompositionStart = () => {
+				if (IS_ANDROID) return;
 				if (this.isComposing) return;
 				this.isComposing = true;
 				this.isIdle = false;
@@ -64,6 +68,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			};
 
 			private readonly onCompositionEnd = () => {
+				if (IS_ANDROID) return;
 				if (!this.isComposing) return;
 				this.isComposing = false;
 				this.view.dom.classList.remove("custom-cursor-ime-active");
@@ -87,7 +92,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			 * This prevents external themes/snippets from overriding caret hiding.
 			 */
 			private applyNativeCaretState() {
-				const nativeVisible = this.isComposing;
+				const nativeVisible = !IS_ANDROID && this.isComposing;
 				const caretColor = nativeVisible ? "auto" : "transparent";
 				const layerOpacity = nativeVisible ? "1" : "0";
 				const layerVisibility = nativeVisible ? "visible" : "hidden";
@@ -271,7 +276,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				const side = settings.cursorStyle === "block" ? -1 : 1;
 
 				// Let IME/mobile composition use the native caret.
-				if (this.isComposing) {
+				if (!IS_ANDROID && this.isComposing) {
 					return Decoration.none;
 				}
 

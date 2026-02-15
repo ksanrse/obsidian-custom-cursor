@@ -1,6 +1,8 @@
+import { Platform } from "obsidian";
 import type { CustomCursorSettings } from "./settings";
 
 const TITLE_SELECTOR = ".inline-title[contenteditable='true']";
+const IS_ANDROID = Platform.isAndroidApp;
 
 type CaretSize = {
 	width: number;
@@ -50,6 +52,7 @@ export class InlineTitleCaretManager {
 	};
 
 	private readonly onCompositionStart = (event: Event): void => {
+		if (IS_ANDROID) return;
 		const title = this.getTitleFromTarget(event.target);
 		if (!title) return;
 
@@ -67,6 +70,7 @@ export class InlineTitleCaretManager {
 	};
 
 	private readonly onCompositionEnd = (event: Event): void => {
+		if (IS_ANDROID) return;
 		const title = this.getTitleFromTarget(event.target);
 		if (!title) return;
 
@@ -157,7 +161,7 @@ export class InlineTitleCaretManager {
 			!selection ||
 			selection.rangeCount === 0 ||
 			!selection.isCollapsed ||
-			this.isComposing
+			(!IS_ANDROID && this.isComposing)
 		) {
 			this.hideCaret();
 			return;
@@ -195,7 +199,7 @@ export class InlineTitleCaretManager {
 
 	private applyNativeTitleCaretState(): void {
 		if (!this.activeTitle) return;
-		const caretColor = this.isComposing ? "auto" : "transparent";
+		const caretColor = (!IS_ANDROID && this.isComposing) ? "auto" : "transparent";
 		this.activeTitle.style.setProperty("caret-color", caretColor, "important");
 	}
 
@@ -221,6 +225,22 @@ export class InlineTitleCaretManager {
 		const fallbackRect = collapsedRange.getBoundingClientRect();
 		if (fallbackRect.height > 0 || fallbackRect.width > 0) {
 			return fallbackRect;
+		}
+
+		// Android WebView may return an empty rect for collapsed ranges in the middle
+		// of contenteditable text. Insert a temporary zero-width marker to measure.
+		const marker = document.createElement("span");
+		marker.className = "custom-title-caret-probe";
+		marker.textContent = "\u200b";
+
+		const markerRange = collapsedRange.cloneRange();
+		markerRange.insertNode(marker);
+
+		const markerRect = marker.getBoundingClientRect();
+		marker.remove();
+
+		if (markerRect.height > 0 || markerRect.width > 0) {
+			return markerRect;
 		}
 
 		return null;
