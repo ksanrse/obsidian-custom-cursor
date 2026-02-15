@@ -417,3 +417,10 @@ this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
 - Developer policies: https://docs.obsidian.md/Developer+policies
 - Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
 - Style guide: https://help.obsidian.md/style-guide
+
+## Current development status (2026-02-16)
+
+- Native CodeMirror caret is now forced fully invisible via CSS opacity/caret-color, but it remains in DOM to avoid breaking editor behaviors (including autocomplete).
+- Custom cursor now also supports editable page title (`.inline-title`) through a dedicated overlay manager, so cursor styling is consistent in note title editing.
+- IME composition mode still restores native caret visibility and hides custom cursor to keep composition UX stable.
+- For local iterative testing in this vault, manual `npm run build` is not required on every change because plugin hot reload workflow is being used.

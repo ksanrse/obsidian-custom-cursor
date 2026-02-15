@@ -1,6 +1,7 @@
 import { Plugin } from "obsidian";
 import type { Extension } from "@codemirror/state";
 import { createCaretExtension } from "./src/caret-extension";
+import { InlineTitleCaretManager } from "./src/title-caret";
 import { CustomCursorSettingTab } from "./src/settings-tab";
 import { DEFAULT_SETTINGS, type CustomCursorSettings } from "./src/settings";
 
@@ -11,6 +12,7 @@ import { DEFAULT_SETTINGS, type CustomCursorSettings } from "./src/settings";
 export default class CustomCursorPlugin extends Plugin {
 	settings: CustomCursorSettings;
 	private editorExtension: Extension[];
+	private inlineTitleCaretManager: InlineTitleCaretManager | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -24,6 +26,13 @@ export default class CustomCursorPlugin extends Plugin {
 
 		// Apply initial cursor styles
 		this.updateCursorStyles();
+
+		// Apply custom cursor behavior to editable note title (inline-title)
+		this.inlineTitleCaretManager = new InlineTitleCaretManager(() => this.settings);
+		this.register(() => {
+			this.inlineTitleCaretManager?.destroy();
+			this.inlineTitleCaretManager = null;
+		});
 	}
 
 	async loadSettings() {
@@ -33,6 +42,7 @@ export default class CustomCursorPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 		this.updateCursorStyles();
+		this.inlineTitleCaretManager?.refresh();
 	}
 
 	/**

@@ -51,19 +51,55 @@
 
 /* Hide native caret only when custom cursor is active for this editor */
 .cm-editor.custom-cursor-enabled .cm-line,
-.cm-editor.custom-cursor-enabled .cm-content.cm-focused {
-	caret-color: transparent;
+.cm-editor.custom-cursor-enabled .cm-content {
+	caret-color: transparent !important;
+}
+
+/* Keep CodeMirror's original caret in DOM, but make the entire layer fully invisible. */
+.cm-editor.custom-cursor-enabled:not(.custom-cursor-ime-active) .cm-cursorLayer {
+	opacity: 0 !important;
+	visibility: hidden !important;
 }
 
 /* During IME composition, restore native caret and hide custom cursor */
 .cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-line,
-.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-content.cm-focused {
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-content {
 	caret-color: auto !important;
+}
+
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-cursorLayer {
+	opacity: 1 !important;
+	visibility: visible !important;
 }
 
 .cm-editor.custom-cursor-enabled.custom-cursor-ime-active .custom-caret-anchor::after {
 	animation: none;
 	opacity: 0;
+}
+
+/* Apply the same behavior to editable note title (inline-title). */
+body.custom-cursor-plugin-enabled .inline-title[contenteditable='true'].custom-cursor-title-active {
+	caret-color: transparent !important;
+}
+
+body.custom-cursor-plugin-enabled .inline-title[contenteditable='true'].custom-cursor-title-active.custom-cursor-ime-active {
+	caret-color: auto !important;
+}
+
+body.custom-cursor-plugin-enabled .custom-title-caret {
+	position: fixed;
+	pointer-events: none;
+	z-index: 1001;
+	background-color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+}
+
+body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-blink {
+	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
+}
+
+body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-hidden {
+	opacity: 0;
+	animation: none;
 }
 
 /* Settings UI Styles */

@@ -58,6 +58,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				this.isIdle = false;
 				this.clearIdleTimeout();
 				this.view.dom.classList.add("custom-cursor-ime-active");
+				this.applyNativeCaretState();
 				this.deco = this.build();
 				this.view.update([]);
 			};
@@ -66,6 +67,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				if (!this.isComposing) return;
 				this.isComposing = false;
 				this.view.dom.classList.remove("custom-cursor-ime-active");
+				this.applyNativeCaretState();
 				this.markActivity();
 				this.scheduleIdleCheck();
 			};
@@ -74,9 +76,41 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				this.view.dom.classList.add("custom-cursor-enabled");
 				this.view.dom.addEventListener("compositionstart", this.onCompositionStart);
 				this.view.dom.addEventListener("compositionend", this.onCompositionEnd);
+				this.applyNativeCaretState();
 				this.deco = this.build();
 				this.updateCursorCache();
 				this.scheduleIdleCheck();
+			}
+
+			/**
+			 * Forces native caret visibility state with inline !important styles.
+			 * This prevents external themes/snippets from overriding caret hiding.
+			 */
+			private applyNativeCaretState() {
+				const nativeVisible = this.isComposing;
+				const caretColor = nativeVisible ? "auto" : "transparent";
+				const layerOpacity = nativeVisible ? "1" : "0";
+				const layerVisibility = nativeVisible ? "visible" : "hidden";
+
+				this.view.contentDOM.style.setProperty("caret-color", caretColor, "important");
+				this.view.dom.style.setProperty("caret-color", caretColor, "important");
+
+				const cursorLayers = this.view.dom.querySelectorAll<HTMLElement>(".cm-cursorLayer");
+				cursorLayers.forEach((layer) => {
+					layer.style.setProperty("opacity", layerOpacity, "important");
+					layer.style.setProperty("visibility", layerVisibility, "important");
+				});
+			}
+
+			private clearNativeCaretState() {
+				this.view.contentDOM.style.removeProperty("caret-color");
+				this.view.dom.style.removeProperty("caret-color");
+
+				const cursorLayers = this.view.dom.querySelectorAll<HTMLElement>(".cm-cursorLayer");
+				cursorLayers.forEach((layer) => {
+					layer.style.removeProperty("opacity");
+					layer.style.removeProperty("visibility");
+				});
 			}
 
 			/**
@@ -166,6 +200,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			 */
 			update(update: ViewUpdate) {
 				const settings = getSettings();
+				this.applyNativeCaretState();
 
 				// Track typing activity for idle detection
 				if (update.docChanged && settings.blinkOnlyWhenIdle && !this.isComposing) {
@@ -263,6 +298,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				this.view.dom.classList.remove("custom-cursor-enabled");
 				this.view.dom.removeEventListener("compositionstart", this.onCompositionStart);
 				this.view.dom.removeEventListener("compositionend", this.onCompositionEnd);
+				this.clearNativeCaretState();
 			}
 		},
 		{ decorations: (instance) => instance.deco }
