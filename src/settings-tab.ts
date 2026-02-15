@@ -9,10 +9,22 @@ import type { CustomCursorSettings } from "./settings";
 export class CustomCursorSettingTab extends PluginSettingTab {
 	plugin: CustomCursorPlugin;
 	private previewContainer: HTMLElement;
+	private saveDebounceTimer: number | null = null;
 
 	constructor(app: App, plugin: CustomCursorPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+	}
+
+	private queueSaveSettings(): void {
+		if (this.saveDebounceTimer !== null) {
+			window.clearTimeout(this.saveDebounceTimer);
+		}
+
+		this.saveDebounceTimer = window.setTimeout(() => {
+			this.saveDebounceTimer = null;
+			void this.plugin.saveSettings();
+		}, 150);
 	}
 
 	/**
@@ -121,9 +133,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 			.setName("Color")
 			.setDesc("Pick a color for your cursor to match your theme or preference")
 			.addColorPicker((color) =>
-				color.setValue(this.plugin.settings.cursorColor).onChange(async (value) => {
+				color.setValue(this.plugin.settings.cursorColor).onChange((value) => {
 					this.plugin.settings.cursorColor = value;
-					await this.plugin.saveSettings();
+					this.queueSaveSettings();
 					this.updatePreview();
 				})
 			)
@@ -150,9 +162,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setLimits(1, 10, 0.5)
 					.setValue(this.plugin.settings.cursorWidth)
 					.setDynamicTooltip()
-					.onChange(async (value) => {
+					.onChange((value) => {
 						this.plugin.settings.cursorWidth = value;
-						await this.plugin.saveSettings();
+						this.queueSaveSettings();
 						this.updatePreview();
 					})
 			)
@@ -169,9 +181,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setLimits(0.5, 2.0, 0.1)
 					.setValue(this.plugin.settings.cursorHeight)
 					.setDynamicTooltip()
-					.onChange(async (value) => {
+					.onChange((value) => {
 						this.plugin.settings.cursorHeight = value;
-						await this.plugin.saveSettings();
+						this.queueSaveSettings();
 						this.updatePreview();
 					})
 			)
@@ -207,9 +219,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setLimits(100, 2000, 100)
 					.setValue(this.plugin.settings.idleDelay)
 					.setDynamicTooltip()
-					.onChange(async (value) => {
+					.onChange((value) => {
 						this.plugin.settings.idleDelay = value;
-						await this.plugin.saveSettings();
+						this.queueSaveSettings();
 						this.updatePreview();
 					})
 			)
@@ -228,9 +240,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 					.setLimits(200, 2000, 100)
 					.setValue(this.plugin.settings.blinkSpeed)
 					.setDynamicTooltip()
-					.onChange(async (value) => {
+					.onChange((value) => {
 						this.plugin.settings.blinkSpeed = value;
-						await this.plugin.saveSettings();
+						this.queueSaveSettings();
 						this.updatePreview();
 					})
 			)

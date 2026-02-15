@@ -21,16 +21,16 @@
 	position: absolute;
 	left: 0;
 	bottom: -0.28em;
-	background-color: var(--custom-cursor-color);
-	width: var(--custom-cursor-width);
-	height: var(--custom-cursor-height);
+	background-color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	width: var(--custom-cursor-width-override, var(--custom-cursor-width));
+	height: var(--custom-cursor-height-override, var(--custom-cursor-height));
 	pointer-events: none;
 	z-index: 1000;
 }
 
 /* Blinking animation */
 .custom-caret-anchor.blink::after {
-	animation: custom-cursor-blink var(--custom-cursor-blink-speed) infinite;
+	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
 }
 
 @keyframes custom-cursor-blink {
@@ -49,10 +49,21 @@
 	}
 }
 
-/* Hide native caret */
-.cm-editor .cm-line,
-.cm-editor .cm-content.cm-focused {
+/* Hide native caret only when custom cursor is active for this editor */
+.cm-editor.custom-cursor-enabled .cm-line,
+.cm-editor.custom-cursor-enabled .cm-content.cm-focused {
 	caret-color: transparent;
+}
+
+/* During IME composition, restore native caret and hide custom cursor */
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-line,
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-content.cm-focused {
+	caret-color: auto !important;
+}
+
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .custom-caret-anchor::after {
+	animation: none;
+	opacity: 0;
 }
 
 /* Settings UI Styles */

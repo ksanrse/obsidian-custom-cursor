@@ -48,48 +48,71 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			private lastCursorHeads: number[] = [];
 			private lastInViewport: boolean = false;
 			private isIdle: boolean = false;
+			private isComposing: boolean = false;
 			private idleTimeout: number | null = null;
 			private lastActivityTime: number = Date.now();
 
+			private readonly onCompositionStart = () => {
+				if (this.isComposing) return;
+				this.isComposing = true;
+				this.isIdle = false;
+				this.clearIdleTimeout();
+				this.view.dom.classList.add("custom-cursor-ime-active");
+				this.deco = this.build();
+				this.view.update([]);
+			};
+
+			private readonly onCompositionEnd = () => {
+				if (!this.isComposing) return;
+				this.isComposing = false;
+				this.view.dom.classList.remove("custom-cursor-ime-active");
+				this.markActivity();
+				this.scheduleIdleCheck();
+			};
+
 			constructor(readonly view: EditorView) {
+				this.view.dom.classList.add("custom-cursor-enabled");
+				this.view.dom.addEventListener("compositionstart", this.onCompositionStart);
+				this.view.dom.addEventListener("compositionend", this.onCompositionEnd);
 				this.deco = this.build();
 				this.updateCursorCache();
-				this.startIdleTracking();
+				this.scheduleIdleCheck();
 			}
 
 			/**
-			 * Starts tracking user activity to determine idle state
-			 * Checks every 100ms if user has been inactive
+			 * Clears pending idle timeout, if any
 			 */
-			private startIdleTracking() {
-				const IDLE_CHECK_INTERVAL = 100; // ms
+			private clearIdleTimeout() {
+				if (this.idleTimeout !== null) {
+					window.clearTimeout(this.idleTimeout);
+					this.idleTimeout = null;
+				}
+			}
 
-				const checkIdle = () => {
-					const settings = getSettings();
+			/**
+			 * Schedules a one-shot idle check instead of constant polling
+			 */
+			private scheduleIdleCheck() {
+				const settings = getSettings();
+				this.clearIdleTimeout();
 
-					// If feature is disabled, ensure we're not in idle state
-					if (!settings.blinkOnlyWhenIdle) {
-						if (this.isIdle) {
-							this.isIdle = false;
-							this.deco = this.build();
-						}
-						return;
-					}
-
-					const now = Date.now();
-					const timeSinceActivity = now - this.lastActivityTime;
-
-					const wasIdle = this.isIdle;
-					this.isIdle = timeSinceActivity >= settings.idleDelay;
-
-					// If idle state changed, rebuild decorations
-					if (wasIdle !== this.isIdle) {
+				if (!settings.blinkOnlyWhenIdle || this.isComposing) {
+					if (this.isIdle) {
+						this.isIdle = false;
 						this.deco = this.build();
 						this.view.update([]);
 					}
-				};
+					return;
+				}
 
-				this.idleTimeout = window.setInterval(checkIdle, IDLE_CHECK_INTERVAL);
+				const delay = Math.max(0, settings.idleDelay);
+				this.idleTimeout = window.setTimeout(() => {
+					this.idleTimeout = null;
+					if (this.isComposing || this.isIdle) return;
+					this.isIdle = true;
+					this.deco = this.build();
+					this.view.update([]);
+				}, delay);
 			}
 
 			/**
@@ -101,6 +124,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 					this.isIdle = false;
 					this.deco = this.build();
 				}
+				this.scheduleIdleCheck();
 			}
 
 			/**
@@ -144,8 +168,14 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				const settings = getSettings();
 
 				// Track typing activity for idle detection
-				if (update.docChanged && settings.blinkOnlyWhenIdle) {
+				if (update.docChanged && settings.blinkOnlyWhenIdle && !this.isComposing) {
 					this.markActivity();
+				}
+
+				// Settings may change without editor transactions; keep idle mode synced.
+				if (!settings.blinkOnlyWhenIdle && this.isIdle) {
+					this.isIdle = false;
+					this.deco = this.build();
 				}
 
 				// Early exit: nothing changed
@@ -196,6 +226,12 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 				// Choose widget based on blink settings and idle state
 				const shouldBlink = !settings.blinkOnlyWhenIdle || this.isIdle;
 				const widget = shouldBlink ? CARET_WIDGET_BLINK : CARET_WIDGET;
+				const side = settings.cursorStyle === "block" ? -1 : 1;
+
+				// Let IME/mobile composition use the native caret.
+				if (this.isComposing) {
+					return Decoration.none;
+				}
 
 				// Add cursor widget at each caret position (if in viewport)
 				for (const range of this.view.state.selection.ranges) {
@@ -211,7 +247,7 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 					builder.add(
 						head,
 						head,
-						Decoration.widget({ widget, side: 1 })
+						Decoration.widget({ widget, side })
 					);
 				}
 
@@ -222,10 +258,11 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 			 * Cleanup on plugin unload
 			 */
 			destroy() {
-				if (this.idleTimeout !== null) {
-					window.clearInterval(this.idleTimeout);
-					this.idleTimeout = null;
-				}
+				this.clearIdleTimeout();
+				this.view.dom.classList.remove("custom-cursor-ime-active");
+				this.view.dom.classList.remove("custom-cursor-enabled");
+				this.view.dom.removeEventListener("compositionstart", this.onCompositionStart);
+				this.view.dom.removeEventListener("compositionend", this.onCompositionEnd);
 			}
 		},
 		{ decorations: (instance) => instance.deco }
