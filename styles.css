@@ -9,6 +9,37 @@
 	--custom-cursor-ultimate-speed: 8000ms;
 }
 
+/* Widget cursor used in Obsidian's editor. */
+.custom-caret-anchor {
+	position: relative;
+	display: inline-block;
+	width: 0;
+	height: 0;
+	color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+}
+
+.custom-caret-anchor::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: -0.28em;
+	width: var(--custom-cursor-width-override, var(--custom-cursor-width));
+	height: var(--custom-cursor-height-override, var(--custom-cursor-height));
+	background-color: currentColor;
+	pointer-events: none;
+	z-index: 1000;
+}
+
+.custom-caret-anchor.blink::after {
+	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
+}
+
+body.custom-cursor-ultimate-color .custom-caret-anchor.blink::after {
+	animation:
+		custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite,
+		custom-cursor-ultimate-color var(--custom-cursor-ultimate-speed) steps(8, end) infinite;
+}
+
 /* Main editor cursor styles: keep CodeMirror's native cursor positioning. */
 .cm-editor.custom-cursor-enabled .cm-cursor,
 .cm-editor.custom-cursor-enabled .cm-dropCursor {
@@ -62,6 +93,7 @@ body.custom-cursor-ultimate-color .cm-editor.custom-cursor-enabled.custom-cursor
 
 /* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
+	.custom-caret-anchor.blink::after,
 	body.custom-cursor-blink-always .cm-editor.custom-cursor-enabled .cm-cursor,
 	.cm-editor.custom-cursor-enabled.custom-cursor-idle .cm-cursor,
 	body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-blink {
@@ -121,6 +153,31 @@ body.custom-cursor-plugin-enabled .custom-title-caret-probe {
 	width: 0;
 	overflow: hidden;
 	pointer-events: none;
+}
+
+.cm-editor.custom-cursor-enabled .cm-line,
+.cm-editor.custom-cursor-enabled .cm-content {
+	caret-color: transparent !important;
+}
+
+.cm-editor.custom-cursor-enabled:not(.custom-cursor-ime-active) .cm-cursorLayer {
+	opacity: 0 !important;
+	visibility: hidden !important;
+}
+
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-line,
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-content {
+	caret-color: auto !important;
+}
+
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-cursorLayer {
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+.cm-editor.custom-cursor-enabled.custom-cursor-ime-active .custom-caret-anchor::after {
+	animation: none;
+	opacity: 0;
 }
 
 /* Settings UI Styles */

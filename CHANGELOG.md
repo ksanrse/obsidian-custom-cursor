@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Enabled CodeMirror's official drawn selection layer so custom cursor styles render in Obsidian.
+- Restored the editor widget cursor in Obsidian after the drawn-selection approach broke visible styling.
 - Added the "Ультимативный цвет" animated color preset.
 - Reworked editor cursor rendering to style CodeMirror's native caret instead of drawing a separate widget cursor.
 - Added IME-safe cursor behavior for composition on mobile devices.
