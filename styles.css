@@ -6,12 +6,14 @@
 	--custom-cursor-width: 2px;
 	--custom-cursor-height: 1.2em;
 	--custom-cursor-blink-speed: 1000ms;
+	--custom-cursor-ultimate-speed: 8000ms;
 }
 
 /* Main editor cursor styles: keep CodeMirror's native cursor positioning. */
 .cm-editor.custom-cursor-enabled .cm-cursor,
 .cm-editor.custom-cursor-enabled .cm-dropCursor {
-	border-left: var(--custom-cursor-width-override, var(--custom-cursor-width)) solid var(--custom-cursor-color-override, var(--custom-cursor-color)) !important;
+	color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	border-left: var(--custom-cursor-width-override, var(--custom-cursor-width)) solid currentColor !important;
 	border-right: none !important;
 	background-color: transparent !important;
 	box-sizing: border-box;
@@ -25,7 +27,7 @@
 body.custom-cursor-style-block .cm-editor.custom-cursor-enabled .cm-cursor {
 	width: var(--custom-cursor-width-override, var(--custom-cursor-width)) !important;
 	border-left: none !important;
-	background-color: var(--custom-cursor-color-override, var(--custom-cursor-color)) !important;
+	background-color: currentColor !important;
 	border-radius: 2px;
 	mix-blend-mode: normal;
 }
@@ -34,12 +36,19 @@ body.custom-cursor-style-underline .cm-editor.custom-cursor-enabled .cm-cursor {
 	width: var(--custom-cursor-width-override, var(--custom-cursor-width)) !important;
 	height: var(--custom-cursor-height-override, var(--custom-cursor-height)) !important;
 	border-left: none !important;
-	border-bottom: var(--custom-cursor-height-override, var(--custom-cursor-height)) solid var(--custom-cursor-color-override, var(--custom-cursor-color)) !important;
+	border-bottom: var(--custom-cursor-height-override, var(--custom-cursor-height)) solid currentColor !important;
 }
 
 body.custom-cursor-blink-always .cm-editor.custom-cursor-enabled .cm-cursor,
 .cm-editor.custom-cursor-enabled.custom-cursor-idle .cm-cursor {
 	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
+}
+
+body.custom-cursor-ultimate-color.custom-cursor-blink-always .cm-editor.custom-cursor-enabled .cm-cursor,
+body.custom-cursor-ultimate-color .cm-editor.custom-cursor-enabled.custom-cursor-idle .cm-cursor {
+	animation:
+		custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite,
+		custom-cursor-ultimate-color var(--custom-cursor-ultimate-speed) steps(8, end) infinite;
 }
 
 @keyframes custom-cursor-blink {
@@ -60,6 +69,17 @@ body.custom-cursor-blink-always .cm-editor.custom-cursor-enabled .cm-cursor,
 	}
 }
 
+@keyframes custom-cursor-ultimate-color {
+	0% { color: #ef4444; }
+	12.5% { color: #f97316; }
+	25% { color: #eab308; }
+	37.5% { color: #22c55e; }
+	50% { color: #06b6d4; }
+	62.5% { color: #3b82f6; }
+	75% { color: #8b5cf6; }
+	87.5%, 100% { color: #ec4899; }
+}
+
 .cm-editor.custom-cursor-enabled.custom-cursor-ime-active .cm-cursor {
 	animation: none;
 }
@@ -77,11 +97,18 @@ body.custom-cursor-plugin-enabled .custom-title-caret {
 	position: fixed;
 	pointer-events: none;
 	z-index: 1001;
-	background-color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	background-color: currentColor;
 }
 
 body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-blink {
 	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
+}
+
+body.custom-cursor-ultimate-color.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-blink {
+	animation:
+		custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite,
+		custom-cursor-ultimate-color var(--custom-cursor-ultimate-speed) steps(8, end) infinite;
 }
 
 body.custom-cursor-plugin-enabled .custom-title-caret.custom-title-caret-hidden {
@@ -158,9 +185,16 @@ body.custom-cursor-plugin-enabled .custom-title-caret-probe {
 	width: var(--custom-cursor-width-override, var(--custom-cursor-width));
 	height: var(--custom-cursor-height-override, var(--custom-cursor-height));
 	margin-bottom: -0.28em;
-	background-color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	color: var(--custom-cursor-color-override, var(--custom-cursor-color));
+	background-color: currentColor;
 	animation: custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite;
 	vertical-align: text-bottom;
+}
+
+body.custom-cursor-ultimate-color .custom-cursor-preview-caret {
+	animation:
+		custom-cursor-blink var(--custom-cursor-blink-speed-override, var(--custom-cursor-blink-speed)) infinite,
+		custom-cursor-ultimate-color var(--custom-cursor-ultimate-speed) steps(8, end) infinite;
 }
 
 .custom-cursor-preview-caret-block,

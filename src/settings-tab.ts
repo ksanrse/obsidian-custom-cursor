@@ -115,6 +115,7 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 				dropdown
 					.addOption("accent", "Accent color (theme's accent color)")
 					.addOption("text", "Text color (theme's text color)")
+					.addOption("ultimate", "Ультимативный цвет")
 					.addOption("custom", "Custom color")
 					.setValue(this.plugin.settings.colorPreset)
 					.onChange(async (value) => {

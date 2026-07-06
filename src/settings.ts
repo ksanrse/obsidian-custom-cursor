@@ -2,8 +2,8 @@
  * Custom Cursor Plugin Settings Interface
  */
 export interface CustomCursorSettings {
-	/** Color preset: accent (theme color), text (text color), or custom */
-	colorPreset: "accent" | "text" | "custom";
+	/** Color preset: accent (theme color), text (text color), custom, or animated */
+	colorPreset: "accent" | "text" | "custom" | "ultimate";
 
 	/** Custom color value (hex) - used when colorPreset is "custom" */
 	cursorColor: string;

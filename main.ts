@@ -59,6 +59,7 @@ export default class CustomCursorPlugin extends Plugin {
 
 		// Apply blink speed
 		root.style.setProperty("--custom-cursor-blink-speed", `${this.settings.blinkSpeed}ms`);
+		root.style.setProperty("--custom-cursor-ultimate-speed", `${this.settings.blinkSpeed * 8}ms`);
 
 		// Apply dimensions based on cursor style
 		const { width, height } = this.getCursorDimensions();
@@ -69,6 +70,7 @@ export default class CustomCursorPlugin extends Plugin {
 		document.body.classList.toggle("custom-cursor-style-block", this.settings.cursorStyle === "block");
 		document.body.classList.toggle("custom-cursor-style-underline", this.settings.cursorStyle === "underline");
 		document.body.classList.toggle("custom-cursor-blink-always", !this.settings.blinkOnlyWhenIdle);
+		document.body.classList.toggle("custom-cursor-ultimate-color", this.settings.colorPreset === "ultimate");
 	}
 
 	/**
@@ -91,6 +93,7 @@ export default class CustomCursorPlugin extends Plugin {
 				const textColor = getComputedStyle(body).getPropertyValue("--text-normal").trim();
 				return textColor || cursorColor;
 			}
+			case "ultimate":
 			case "custom":
 			default:
 				return cursorColor;
@@ -135,11 +138,13 @@ export default class CustomCursorPlugin extends Plugin {
 		root.style.removeProperty("--custom-cursor-width");
 		root.style.removeProperty("--custom-cursor-height");
 		root.style.removeProperty("--custom-cursor-blink-speed");
+		root.style.removeProperty("--custom-cursor-ultimate-speed");
 		document.body.classList.remove(
 			"custom-cursor-style-line",
 			"custom-cursor-style-block",
 			"custom-cursor-style-underline",
-			"custom-cursor-blink-always"
+			"custom-cursor-blink-always",
+			"custom-cursor-ultimate-color"
 		);
 	}
 }
