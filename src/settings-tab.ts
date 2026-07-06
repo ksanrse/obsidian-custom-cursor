@@ -290,9 +290,9 @@ export class CustomCursorSettingTab extends PluginSettingTab {
 		// Text before cursor
 		textLine.createSpan({ text: "The quick brown fox jumps over the lazy d" });
 
-		// Cursor - use EXACTLY the same class as real cursor
+		// Cursor preview uses the same CSS variables as the real CodeMirror caret.
 		textLine.createSpan({
-			cls: "custom-caret-anchor blink",
+			cls: `custom-cursor-preview-caret custom-cursor-preview-caret-${this.plugin.settings.cursorStyle}`,
 		});
 
 		// Text after cursor

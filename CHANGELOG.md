@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Reworked editor cursor rendering to style CodeMirror's native caret instead of drawing a separate widget cursor.
 - Added IME-safe cursor behavior for composition on mobile devices.
 - Replaced constant idle polling with event-driven idle scheduling to reduce background CPU usage.
 - Adjusted block cursor placement to avoid visual forward offset.

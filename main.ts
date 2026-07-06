@@ -64,6 +64,11 @@ export default class CustomCursorPlugin extends Plugin {
 		const { width, height } = this.getCursorDimensions();
 		root.style.setProperty("--custom-cursor-width", width);
 		root.style.setProperty("--custom-cursor-height", height);
+
+		document.body.classList.toggle("custom-cursor-style-line", this.settings.cursorStyle === "line");
+		document.body.classList.toggle("custom-cursor-style-block", this.settings.cursorStyle === "block");
+		document.body.classList.toggle("custom-cursor-style-underline", this.settings.cursorStyle === "underline");
+		document.body.classList.toggle("custom-cursor-blink-always", !this.settings.blinkOnlyWhenIdle);
 	}
 
 	/**
@@ -130,5 +135,11 @@ export default class CustomCursorPlugin extends Plugin {
 		root.style.removeProperty("--custom-cursor-width");
 		root.style.removeProperty("--custom-cursor-height");
 		root.style.removeProperty("--custom-cursor-blink-speed");
+		document.body.classList.remove(
+			"custom-cursor-style-line",
+			"custom-cursor-style-block",
+			"custom-cursor-style-underline",
+			"custom-cursor-blink-always"
+		);
 	}
 }
