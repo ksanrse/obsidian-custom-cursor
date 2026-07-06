@@ -1,5 +1,5 @@
 import { type Extension } from "@codemirror/state";
-import { type EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
+import { drawSelection, type EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { Platform } from "obsidian";
 import type { CustomCursorSettings } from "./settings";
 
@@ -93,5 +93,5 @@ function createCaretPlugin(getSettings: () => CustomCursorSettings) {
 }
 
 export function createCaretExtension(getSettings: () => CustomCursorSettings): Extension[] {
-	return [createCaretPlugin(getSettings)];
+	return [drawSelection(), createCaretPlugin(getSettings)];
 }
